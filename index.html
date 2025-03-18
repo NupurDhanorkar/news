@@ -1,50 +1,94 @@
+<!DOCTYPE html>
 <html>
+  <head>
+    <title>News Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        background-color: #f0f2f5;
+      }
+      #container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+      input, button {
+        width: 90%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+      button {
+        background-color: #4CAF50;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+      #result {
+        margin-top: 15px;
+        text-align: left;
+      }
+    </style>
+  </head>
   <body>
-    <input id="input" type="text" placeholder="Enter a topic">
-    <button onclick="getNews()">Generate News</button>
-    <div id="result"></div>
+    <div id="container">
+      <h2>News Generator</h2>
+      <input id="input" type="text" placeholder="Enter a topic" />
+      <button onclick="getNews()">Generate News</button>
+      <div id="result"></div>
+    </div>
 
     <script>
       const input = document.getElementById("input");
 
       async function getNews() {
-        if (!input.value.trim()) {
-          alert("Please enter a topic!");
+        const API_KEY = "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"; // Replace with new API key
+        const topic = input.value.trim();
+
+        if (!topic) {
+          document.getElementById('result').innerHTML = `<p style='color:red;'>⚠️ Please enter a topic.</p>`;
           return;
         }
 
-        const API_KEY = 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; // Use the correct key
         try {
-          const response = await fetch("https://api.groq.com/v1/chat/completions", {
+          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: "Bearer " + API_KEY,
             },
             body: JSON.stringify({
-              model: "llama-3-70b-chat",
+              model: "llama-3.3-70b-versatile",
               messages: [
                 {
                   role: "user",
-                  content: `Generate news on the topic "${input.value}" in a <div> tag with proper CSS styling.`,
+                  content: `Generate news on the topic "${topic}" in a <div> tag with proper CSS styling.`,
                 },
               ],
             }),
           });
 
           const body = await response.json();
-          
-          if (body.choices && body.choices.length > 0) {
+
+          if (response.ok) {
             const newDiv = document.createElement('div');
             newDiv.innerHTML = body.choices[0].message.content;
             document.getElementById('result').innerHTML = '';
             document.getElementById('result').appendChild(newDiv);
           } else {
-            document.getElementById('result').innerHTML = "❌ No valid response. Check API key or endpoint.";
+            document.getElementById('result').innerHTML = `<p style='color:red;'>❌ Error: ${body.error.message}</p>`;
           }
-
         } catch (error) {
-          document.getElementById('result').innerHTML = `❌ Error: ${error.message}`;
+          document.getElementById('result').innerHTML = `<p style='color:red;'>❌ Failed to fetch data. Check API key or network connection.</p>`;
         }
       }
     </script>
